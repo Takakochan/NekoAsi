@@ -144,47 +144,69 @@ def record(args) -> None:
 
 
 # ---------------------------------------------------------------- 再生
-def play(args) -> None:
-    data = json.loads(Path(args.file).read_text())
+def load_motion(file: str) -> tuple[np.ndarray, np.ndarray]:
+    data = json.loads(Path(file).read_text())
     t = np.array([f["t"] for f in data["frames"]])
     P = np.array([f["pos"] for f in data["frames"]])  # (N, 6)
+    return t, P
+
+
+def move_to(robot, goal: np.ndarray, sec: float, fps: int) -> None:
+    """今の位置から goal まで sec 秒かけてゆっくり移動する"""
+    start = np.array(read_pos(robot))
+    steps = max(1, int(sec * fps))
+    for k in range(1, steps + 1):
+        send(robot, start + (goal - start) * k / steps)
+        time.sleep(1.0 / fps)
+
+
+def play_frames(robot, t, P, speed: float, loop: int, fps: int, approach_sec: float) -> None:
+    """トルクONの状態で、開始位置へ移動してから記録を再生する"""
+    # 1) 現在位置から記録の開始位置までゆっくり移動
+    print("開始位置へ移動中...")
+    move_to(robot, P[0], approach_sec, fps)
+
+    # 2) 時間を speed 倍に伸縮して再生（関節ごとに線形補間）
+    for n in range(loop):
+        print(f"▶ 再生 {n + 1}/{loop}（速度 x{speed}）")
+        t0 = time.perf_counter()
+        while True:
+            tau = (time.perf_counter() - t0) * speed
+            if tau > t[-1]:
+                break
+            target = [np.interp(tau, t, P[:, j]) for j in range(len(MOTORS))]
+            send(robot, target)
+            time.sleep(1.0 / fps)
+        if n < loop - 1:  # ループの継ぎ目で飛ばないよう開始位置に戻す
+            move_to(robot, P[0], approach_sec, fps)
+
+
+def release(robot) -> None:
+    """アームを支えてもらってからトルクを切る。Ctrl+C でもトルクを入れたまま終わらない"""
+    while True:
+        try:
+            input("再生終了。アームを手で支えてから Enter（トルクがOFFになります）")
+            break
+        except KeyboardInterrupt:
+            print("\nCtrl+C ではなく、アームを支えてから Enter を押してください")
+    robot.disconnect()
+
+
+def play(args) -> None:
+    t, P = load_motion(args.file)
 
     robot = connect(args.port, args.id)
     try:
         try:
             print("アームを手で支えてください（トルクを入れます）")
             input("準備ができたら Enter")
-            current = np.array(hold_current_pose(robot))
-
-            # 1) 現在位置から記録の開始位置までゆっくり移動
-            print("開始位置へ移動中...")
-            steps = int(args.approach_sec * args.fps)
-            for k in range(1, steps + 1):
-                send(robot, current + (P[0] - current) * k / steps)
-                time.sleep(1.0 / args.fps)
-
-            # 2) 時間を speed 倍に伸縮して再生（関節ごとに線形補間）
-            for n in range(args.loop):
-                print(f"▶ 再生 {n + 1}/{args.loop}（速度 x{args.speed}）")
-                t0 = time.perf_counter()
-                while True:
-                    tau = (time.perf_counter() - t0) * args.speed
-                    if tau > t[-1]:
-                        break
-                    target = [np.interp(tau, t, P[:, j]) for j in range(len(MOTORS))]
-                    send(robot, target)
-                    time.sleep(1.0 / args.fps)
-                if n < args.loop - 1:  # ループの継ぎ目で飛ばないよう開始位置に戻す
-                    last = P[-1]
-                    for k in range(1, steps + 1):
-                        send(robot, last + (P[0] - last) * k / steps)
-                        time.sleep(1.0 / args.fps)
+            hold_current_pose(robot)
+            play_frames(robot, t, P, args.speed, args.loop, args.fps, args.approach_sec)
         except KeyboardInterrupt:
             print("\n■ 中断しました")
     finally:
         # 中断・エラー時もトルクが入ったままにならないよう、必ずここを通す
-        input("再生終了。アームを手で支えてから Enter（トルクがOFFになります）")
-        robot.disconnect()
+        release(robot)
 
     if args.log:
         from reactions import ask_and_log
