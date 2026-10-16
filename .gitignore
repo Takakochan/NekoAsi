@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.venv/
+.ipynb_checkpoints/
+
+# カメラを追加したら：家の中が映るので映像はリポジトリに入れない（データは Hugging Face へ）
+*.mp4
+*.avi
