@@ -4,9 +4,13 @@ SO-101 フォロワーアーム用 ダイレクトティーチング（手で動
 使い方:
   記録: python direct_teach.py record --port /dev/ttyACM0 --id my_follower --out recordings/flick.json
   再生: python direct_teach.py play   --port /dev/ttyACM0 --id my_follower --file recordings/flick.json --speed 1.5
+  再生して反応をメモ: python direct_teach.py play ... --log
+  範囲チェック: python direct_teach.py check --id my_follower recordings/*.json
 
 --id はキャリブレーション時に使った id と同じものにしてください。
 """
+from __future__ import annotations
+
 import argparse
 import json
 import time
@@ -14,18 +18,22 @@ from pathlib import Path
 
 import numpy as np
 
-try:
-    from lerobot.robots.so_follower import SO101Follower, SO101FollowerConfig
-except ImportError as e:
-    raise SystemExit(
-        "LeRobot の SO101Follower を読み込めませんでした。"
-        "LeRobot のバージョンによってモジュールの場所が違う可能性があります。\n" + str(e)
-    )
-
 MOTORS = ["shoulder_pan", "shoulder_lift", "elbow_flex", "wrist_flex", "wrist_roll", "gripper"]
+CALIB_DIRS = [
+    Path.home() / ".cache/huggingface/lerobot/calibration/robots/so_follower",
+    Path(__file__).parent / "calibration",  # リポジトリに保存したコピー
+]
 
 
-def connect(port: str, robot_id: str) -> SO101Follower:
+def connect(port: str, robot_id: str):
+    # check だけならアームなしで使えるよう、LeRobot はここで読み込む
+    try:
+        from lerobot.robots.so_follower import SO101Follower, SO101FollowerConfig
+    except ImportError as e:
+        raise SystemExit(
+            "LeRobot の SO101Follower を読み込めませんでした。"
+            "LeRobot のバージョンによってモジュールの場所が違う可能性があります。\n" + str(e)
+        )
     robot = SO101Follower(SO101FollowerConfig(port=port, id=robot_id))
     robot.connect()
     return robot
@@ -49,24 +57,61 @@ def send(robot, values) -> None:
     robot.send_action({f"{m}.pos": float(v) for m, v in zip(MOTORS, values)})
 
 
+# ---------------------------------------------------------------- 範囲チェック
+def joint_limits(robot_id: str) -> dict[str, tuple[float, float]] | None:
+    """キャリブレーションの範囲を「度」に直す（LeRobot と同じく範囲の中心が 0°）"""
+    path = next((d / f"{robot_id}.json" for d in CALIB_DIRS if (d / f"{robot_id}.json").exists()), None)
+    if path is None:
+        return None
+    calib = json.loads(path.read_text())
+    limits = {}
+    for m in MOTORS:
+        if m in ("wrist_roll", "gripper"):  # wrist_roll は1回転、gripper は 0〜100 表示なので対象外
+            continue
+        lo, hi = calib[m]["range_min"], calib[m]["range_max"]
+        mid = (lo + hi) / 2
+        limits[m] = ((lo - mid) * 360 / 4095, (hi - mid) * 360 / 4095)
+    return limits
+
+
+def check_range(frames: list[dict], robot_id: str) -> bool:
+    """範囲の外に出た関節を表示する。全部収まっていれば True"""
+    limits = joint_limits(robot_id)
+    if limits is None:
+        print(f"  （キャリブレーションファイル {robot_id}.json が見つからないので範囲チェックを省略）")
+        return True
+    P = np.array([f["pos"] for f in frames])
+    ok = True
+    for j, m in enumerate(MOTORS):
+        if m not in limits:
+            continue
+        lo, hi = limits[m]
+        if P[:, j].min() < lo or P[:, j].max() > hi:
+            ok = False
+            print(
+                f"  ⚠️ {m} が範囲の外: 記録 {P[:, j].min():.1f}〜{P[:, j].max():.1f}° / "
+                f"範囲 {lo:.1f}〜{hi:.1f}°（再生では端で止まります）"
+            )
+    if ok:
+        print("  ✅ 全関節が可動域に収まっています")
+    return ok
+
+
 # ---------------------------------------------------------------- 記録
-def record(args) -> None:
-    robot = connect(args.port, args.id)
-    robot.bus.disable_torque()
-    print("トルクOFFにしました。アームを手で動かせます。")
-    input("開始位置にアームを置いて Enter → 3秒後に記録開始（Ctrl+C で終了）")
+def record_frames(robot, fps: int, duration: float) -> list[dict]:
+    """トルクOFFの状態で、Ctrl+C か duration 秒まで関節角度を記録する"""
     for i in (3, 2, 1):
         print(f"  {i}...")
         time.sleep(1)
-    print("● 記録中")
+    print("● 記録中（Ctrl+C で終了）")
 
     frames = []
-    period = 1.0 / args.fps
+    period = 1.0 / fps
     t0 = time.perf_counter()
     try:
         while True:
             t = time.perf_counter() - t0
-            if args.duration and t > args.duration:
+            if duration and t > duration:
                 break
             frames.append({"t": t, "pos": read_pos(robot)})
             sleep = period - (time.perf_counter() - t0 - t)
@@ -74,15 +119,28 @@ def record(args) -> None:
                 time.sleep(sleep)
     except KeyboardInterrupt:
         pass
+    return frames
 
-    robot.disconnect()
 
+def save_recording(frames: list[dict], fps: int, out: Path, robot_id: str) -> bool:
     if not frames:
         print("■ フレームが記録されなかったので保存しませんでした")
-        return
-    out = Path(args.out)
-    out.write_text(json.dumps({"fps": args.fps, "motors": MOTORS, "frames": frames}, indent=1))
+        return False
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps({"fps": fps, "motors": MOTORS, "frames": frames}, indent=1))
     print(f"■ {len(frames)} フレーム（{frames[-1]['t']:.1f}秒）を {out} に保存しました")
+    check_range(frames, robot_id)
+    return True
+
+
+def record(args) -> None:
+    robot = connect(args.port, args.id)
+    robot.bus.disable_torque()
+    print("トルクOFFにしました。アームを手で動かせます。")
+    input("開始位置にアームを置いて Enter → 3秒後に記録開始")
+    frames = record_frames(robot, args.fps, args.duration)
+    robot.disconnect()
+    save_recording(frames, args.fps, Path(args.out), args.id)
 
 
 # ---------------------------------------------------------------- 再生
@@ -128,6 +186,17 @@ def play(args) -> None:
         input("再生終了。アームを手で支えてから Enter（トルクがOFFになります）")
         robot.disconnect()
 
+    if args.log:
+        from reactions import ask_and_log
+
+        ask_and_log(args.file, args.speed)
+
+
+def check(args) -> None:
+    for f in args.files:
+        print(f)
+        check_range(json.loads(Path(f).read_text())["frames"], args.id)
+
 
 def main() -> None:
     p = argparse.ArgumentParser(description="SO-101 ダイレクトティーチング")
@@ -147,9 +216,14 @@ def main() -> None:
     pl.add_argument("--speed", type=float, default=1.0, help="1.5 なら1.5倍速")
     pl.add_argument("--loop", type=int, default=1)
     pl.add_argument("--approach-sec", type=float, default=3.0, help="開始位置までの移動時間")
+    pl.add_argument("--log", action="store_true", help="再生後に Vino の反応を reactions.csv に記録する")
+
+    c = sub.add_parser("check", help="記録が可動域に収まっているか調べる（アーム不要）")
+    c.add_argument("--id", default="my_follower", help="キャリブレーション時の id")
+    c.add_argument("files", nargs="+")
 
     args = p.parse_args()
-    record(args) if args.cmd == "record" else play(args)
+    {"record": record, "play": play, "check": check}[args.cmd](args)
 
 
 if __name__ == "__main__":
