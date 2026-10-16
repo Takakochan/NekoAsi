@@ -134,7 +134,7 @@ def main() -> None:
     sub = p.add_subparsers(dest="cmd", required=True)
 
     common = argparse.ArgumentParser(add_help=False)
-    common.add_argument("--port", required=True, help="例: COM3（lerobot-find-port で確認）")
+    common.add_argument("--port", required=True, help="例: /dev/ttyACM0（lerobot-find-port で確認）")
     common.add_argument("--id", required=True, help="キャリブレーション時の id")
     common.add_argument("--fps", type=int, default=30)
 
