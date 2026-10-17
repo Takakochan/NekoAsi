@@ -38,11 +38,16 @@ def main() -> None:
     p.add_argument("--shuffle", action="store_true", help="順番をランダムにする（同じ順番だと猫が慣れるため）")
     p.add_argument("--log", action="store_true", help="1回ごとに Vino の反応を reactions.csv に記録する")
     p.add_argument("--camera", help="録画するカメラ番号（例: 0）。省略すると録画しない")
-    p.add_argument("--cam-width", type=int, default=1920)
-    p.add_argument("--cam-height", type=int, default=1080)
+    p.add_argument("--cam-width", type=int, default=640)
+    p.add_argument("--cam-height", type=int, default=480)
     p.add_argument("--cam-fps", type=int, default=30)
     p.add_argument("--cam-exposure", type=int, default=None, help="手動露光時間（例: 220）。auto_exposure だと fps が20くらいに落ちるカメラ用")
     p.add_argument("--cam-gain", type=int, default=None, help="手動ゲイン（0〜63）。暗いときに明るさを足す")
+    p.add_argument(
+        "--cam-fourcc",
+        default="MJPG",
+        help="MJPG（既定。フレームが2〜7割壊れることがあるが使える）/ YUYV（このカメラでは OpenCV の不具合で映像が壊れる。非推奨）",
+    )
     p.add_argument("--session-dir", default="sessions")
     args = p.parse_args()
 
@@ -66,6 +71,7 @@ def main() -> None:
             args.cam_fps,
             args.cam_exposure,
             args.cam_gain,
+            args.cam_fourcc,
         )
 
     robot = connect(args.port, args.id)
