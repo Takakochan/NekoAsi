@@ -160,13 +160,8 @@ def move_to(robot, goal: np.ndarray, sec: float, fps: int) -> None:
         time.sleep(1.0 / fps)
 
 
-def play_frames(robot, t, P, speed: float, loop: int, fps: int, approach_sec: float) -> None:
-    """トルクONの状態で、開始位置へ移動してから記録を再生する"""
-    # 1) 現在位置から記録の開始位置までゆっくり移動
-    print("開始位置へ移動中...")
-    move_to(robot, P[0], approach_sec, fps)
-
-    # 2) 時間を speed 倍に伸縮して再生（関節ごとに線形補間）
+def play_pattern(robot, t, P, speed: float, loop: int, fps: int, approach_sec: float) -> None:
+    """トルクONの状態で、今の位置から記録を再生する（開始位置への移動は含まない）"""
     for n in range(loop):
         print(f"▶ 再生 {n + 1}/{loop}（速度 x{speed}）")
         t0 = time.perf_counter()
@@ -179,6 +174,13 @@ def play_frames(robot, t, P, speed: float, loop: int, fps: int, approach_sec: fl
             time.sleep(1.0 / fps)
         if n < loop - 1:  # ループの継ぎ目で飛ばないよう開始位置に戻す
             move_to(robot, P[0], approach_sec, fps)
+
+
+def play_frames(robot, t, P, speed: float, loop: int, fps: int, approach_sec: float) -> None:
+    """トルクONの状態で、開始位置へ移動してから記録を再生する"""
+    print("開始位置へ移動中...")
+    move_to(robot, P[0], approach_sec, fps)
+    play_pattern(robot, t, P, speed, loop, fps, approach_sec)
 
 
 def release(robot) -> None:

@@ -10,7 +10,10 @@
 再生中の Ctrl+C はそのファイルだけ止めて次へ進む。終了するときは必ずアームを支えてからトルクを切る。
 
 sessions/<日時>_events.csv に、どのファイルをいつ再生したかを残す（time.time() の秒）。
---camera を付けると sessions/<日時>.mp4 と <日時>_frames.csv も作る。時計が同じなので、あとで動画と突き合わせられる。
+approach_start は開始位置への移動を始めた時刻、play_start〜play_end が実際に記録済みの
+動きを再生していた区間。
+--camera を付けると sessions/<日時>.mp4 と <日時>_frames.csv も作る。時計が同じなので、
+play_start〜play_end の区間だけを動画から正確に切り出せる。
 """
 import argparse
 import csv
@@ -19,11 +22,12 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-from direct_teach import connect, hold_current_pose, load_motion, play_frames, release
+from direct_teach import connect, hold_current_pose, load_motion, move_to, play_pattern, release
 from reactions import pattern_name
 
-# start は開始位置への移動を始めた時刻。実際の再生は approach_sec 秒あと
-EVENT_FIELDS = ["file", "pattern", "speed", "loop", "approach_sec", "start", "end", "interrupted"]
+# approach_start は開始位置への移動を始めた時刻。play_start〜play_end が実際に再生していた区間
+# （カメラの frames.csv も time.time() なので、この区間だけ動画から切り出せる）
+EVENT_FIELDS = ["file", "pattern", "speed", "loop", "approach_sec", "approach_start", "play_start", "play_end", "interrupted"]
 
 
 def main() -> None:
@@ -95,15 +99,24 @@ def main() -> None:
 
             t, P = load_motion(f)
             interrupted = False
-            start = time.time()
+            play_start = play_end = None
+            approach_start = time.time()
             try:
-                play_frames(robot, t, P, args.speed, args.loop, args.fps, args.approach_sec)
+                print("開始位置へ移動中...")
+                move_to(robot, P[0], args.approach_sec, args.fps)
+                play_start = time.time()
+                play_pattern(robot, t, P, args.speed, args.loop, args.fps, args.approach_sec)
+                play_end = time.time()
             except KeyboardInterrupt:
                 interrupted = True
+                play_end = time.time()
                 print("\n■ このファイルを中断しました")
             ev.writerow({
                 "file": Path(f).name, "pattern": pattern_name(f), "speed": args.speed, "loop": args.loop, "approach_sec": args.approach_sec,
-                "start": f"{start:.4f}", "end": f"{time.time():.4f}", "interrupted": interrupted,
+                "approach_start": f"{approach_start:.4f}",
+                "play_start": f"{play_start:.4f}" if play_start else "",
+                "play_end": f"{play_end:.4f}" if play_end else "",
+                "interrupted": interrupted,
             })
             events.flush()
             if args.log:
