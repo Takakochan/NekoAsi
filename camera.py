@@ -6,9 +6,15 @@ USB カメラの録画（アームの制御を止めないよう、別スレッ�
 
 カメラの確認（5秒撮って、解像度と実際の fps を表示）:
   python camera.py --camera 0 --seconds 5
+
+このカメラは自動露出（auto exposure）だと fps が 20 くらいに落ちる。
+--exposure と --gain で手動露出に固定すると 30fps を維持できる（要 v4l2-ctl）。
+部屋の明るさで値は変わるので、まず明るさを見て調整すること。目安：
+  python camera.py --camera 0 --seconds 5 --exposure 220 --gain 36
 """
 import argparse
 import csv
+import subprocess
 import sys
 import threading
 import time
@@ -22,8 +28,33 @@ def parse_source(s: str):
     return int(s) if s.isdigit() else s
 
 
+def set_manual_exposure(camera_index: int, exposure: int | None, gain: int | None) -> None:
+    """auto_exposure を手動に固定して露光とゲインを設定する（v4l2-ctl が要る）"""
+    device = f"/dev/video{camera_index}"
+    cmd = ["v4l2-ctl", "-d", device, "-c", "auto_exposure=1"]
+    if exposure is not None:
+        cmd += ["-c", f"exposure_time_absolute={exposure}"]
+    if gain is not None:
+        cmd += ["-c", f"gain={gain}"]
+    try:
+        subprocess.run(cmd, check=True, capture_output=True, text=True)
+    except FileNotFoundError:
+        print("  ⚠️ v4l2-ctl が見つかりません（sudo apt install v4l-utils）。自動露出のまま使います")
+    except subprocess.CalledProcessError as e:
+        print(f"  ⚠️ 露出の設定に失敗: {e.stderr.strip()}")
+
+
 class CameraRecorder:
-    def __init__(self, source, out_path: Path, width: int = 1920, height: int = 1080, fps: int = 30):
+    def __init__(
+        self,
+        source,
+        out_path: Path,
+        width: int = 1920,
+        height: int = 1080,
+        fps: int = 30,
+        exposure: int | None = None,
+        gain: int | None = None,
+    ):
         self.out_path = Path(out_path)
         self.frames_path = self.out_path.with_name(self.out_path.stem + "_frames.csv")
         self.n_frames = 0
@@ -42,6 +73,8 @@ class CameraRecorder:
             self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
             self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
             self.cap.set(cv2.CAP_PROP_FPS, fps)
+            if (exposure is not None or gain is not None) and sys.platform.startswith("linux"):
+                set_manual_exposure(source, exposure, gain)
 
         ok, frame = self.cap.read()
         if not ok:
@@ -102,9 +135,13 @@ def main() -> None:
     p.add_argument("--fps", type=int, default=30)
     p.add_argument("--seconds", type=float, default=5)
     p.add_argument("--out", default="sessions/camera_test.mp4")
+    p.add_argument("--exposure", type=int, default=None, help="手動露光時間（例: 220）。指定すると自動露出をオフにする")
+    p.add_argument("--gain", type=int, default=None, help="手動ゲイン（0〜63）。暗いときに明るさを足す")
     args = p.parse_args()
 
-    rec = CameraRecorder(parse_source(args.camera), Path(args.out), args.width, args.height, args.fps)
+    rec = CameraRecorder(
+        parse_source(args.camera), Path(args.out), args.width, args.height, args.fps, args.exposure, args.gain
+    )
     rec.start()
     time.sleep(args.seconds)
     rec.stop()

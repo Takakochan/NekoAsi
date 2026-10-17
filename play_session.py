@@ -41,6 +41,8 @@ def main() -> None:
     p.add_argument("--cam-width", type=int, default=1920)
     p.add_argument("--cam-height", type=int, default=1080)
     p.add_argument("--cam-fps", type=int, default=30)
+    p.add_argument("--cam-exposure", type=int, default=None, help="手動露光時間（例: 220）。auto_exposure だと fps が20くらいに落ちるカメラ用")
+    p.add_argument("--cam-gain", type=int, default=None, help="手動ゲイン（0〜63）。暗いときに明るさを足す")
     p.add_argument("--session-dir", default="sessions")
     args = p.parse_args()
 
@@ -57,7 +59,13 @@ def main() -> None:
         from camera import CameraRecorder, parse_source
 
         recorder = CameraRecorder(
-            parse_source(args.camera), session.with_suffix(".mp4"), args.cam_width, args.cam_height, args.cam_fps
+            parse_source(args.camera),
+            session.with_suffix(".mp4"),
+            args.cam_width,
+            args.cam_height,
+            args.cam_fps,
+            args.cam_exposure,
+            args.cam_gain,
         )
 
     robot = connect(args.port, args.id)
