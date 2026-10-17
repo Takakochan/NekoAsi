@@ -6,3 +6,5 @@ __pycache__/
 # カメラを追加したら：家の中が映るので映像はリポジトリに入れない（データは Hugging Face へ）
 *.mp4
 *.avi
+# フレームごとの時刻は動画と一緒に Hugging Face へ
+sessions/*_frames.csv
