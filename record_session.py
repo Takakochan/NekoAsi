@@ -14,13 +14,69 @@ from pathlib import Path
 from direct_teach import connect, record_frames, save_recording
 
 PATTERNS = {
-    "slow_crawl": "床の上をゆっくり這わせる（ネズミ・虫）",
-    "dart_stop": "床の上で素早く動いて急に止まる、を繰り返す",
-    "flick": "手首で素早く跳ねさせる（跳ねる虫）",
-    "flutter": "空中で小刻みに揺らし、ときどき床に降ろす（鳥）",
-    "peek": "物陰からチラッと出して、すぐ引っ込める",
-    "retreat": "猫の方から離れていく（猫に向かって近づけない）",
+    "slow_crawl": {"how": "床の上をゆっくり這わせる（ネズミ・虫）"},
+    "dart_stop": {"how": "床の上で素早く動いて急に止まる、を繰り返す"},
+    "flick": {"how": "手首で素早く跳ねさせる（跳ねる虫）"},
+    "flutter": {"how": "空中で小刻みに揺らし、ときどき床に降ろす（鳥）"},
+    "peek": {"how": "物陰からチラッと出して、すぐ引っ込める"},
+    "retreat": {"how": "猫の方から離れていく（猫に向かって近づけない）"},
+    "air_hover": {
+        "height": "高い（Vino の手が届きにくい高さ）",
+        "speed": "ゆっくり",
+        "how": "その場でふわふわ小さく上下・左右に揺れる。止まらず、ずっと漂っている感じ",
+        "duration": "8〜15秒",
+    },
+    "air_zigzag": {
+        "height": "高い",
+        "speed": "速め",
+        "how": "左右に小刻みに方向転換を繰り返す（ジグザグ）。切り返しをはっきりさせる",
+        "duration": "5〜10秒",
+    },
+    "air_swoop": {
+        "height": "高い",
+        "speed": "速い",
+        "how": "大きな弧を描いて一方からもう一方へ振る。羽ばたくような小刻みさは無し、ダイナミックに",
+        "duration": "5〜10秒",
+    },
+    "air_peekaboo": {
+        "height": "中〜高い（低くしすぎない）",
+        "speed": "ゆっくり＋一瞬速い",
+        "how": "一度上に隠す（視界の外や死角）→一瞬だけ下げて見せる→またすぐ上げる、を2〜3回繰り返す。"
+        "下げるのは一瞬だけで、Vino の届く高さに留めない",
+        "duration": "10〜15秒",
+    },
+    "fly_quick": {
+        "height": "空中（高め）",
+        "speed": "速い",
+        "how": "flutter より速く、短い距離を素早くダートするように左右・上下に移動。"
+        "小刻みな羽ばたきではなく、素早い移動そのもの",
+        "duration": "5〜8秒",
+    },
+    "low_dart": {
+        "height": "低い（床）",
+        "speed": "速い",
+        "how": "床スレスレを素早く走らせてピタッと止める。dart_stop の低い版。1〜2テイクのみでOK",
+        "duration": "5〜8秒",
+    },
 }
+
+
+def print_pattern_detail(pattern: str) -> None:
+    """記録前に、動きの詳細（高さ・速さ・動かし方・長さの目安）をターミナルに表示する"""
+    info = PATTERNS.get(pattern)
+    if not info:
+        return
+    line = " / ".join(
+        f"{label}: {info[key]}"
+        for label, key in (("高さ", "height"), ("速さ", "speed"))
+        if info.get(key)
+    )
+    if line:
+        print(f"    {line}")
+    if info.get("how"):
+        print(f"    動き: {info['how']}")
+    if info.get("duration"):
+        print(f"    長さの目安: {info['duration']}")
 
 
 def main() -> None:
@@ -51,7 +107,7 @@ def main() -> None:
 
                 while True:  # 撮り直しのためのループ
                     print(f"\n=== {pattern}  テイク {take}/{args.takes} ===")
-                    print(f"    {PATTERNS.get(pattern, '')}")
+                    print_pattern_detail(pattern)
                     ans = input("ホーム姿勢に置いて Enter → 3秒後に開始（s=このパターンを飛ばす / q=終了）: ")
                     ans = ans.strip().lower()
                     if ans == "q":

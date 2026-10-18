@@ -1,3 +1,29 @@
 datetime,file,pattern,speed,reaction,score,note
 2026-10-17T13:53:31,flutter_01.json,flutter,1.0,飛びかかった,3,Vino is too wilde
 2026-10-17T13:59:41,flutter_01.json,flutter,1.0,飛びかかった,3,when the teaser go down vino could get the teaser.it should not be lower level
+2026-10-18T11:30:01,air_zigzag_02.json,air_zigzag,1.5,飛びかかった,3,Vino is too active
+2026-10-18T11:30:56,air_hover_01.json,air_hover,1.5,飛びかかった,3,try to fetch
+2026-10-18T11:31:49,low_dart_02.json,low_dart,1.5,飛びかかった,3,Too low and Vino could take the teaser
+2026-10-18T11:34:04,air_peekaboo_01.json,air_peekaboo,1.5,見た,1,"Vino jumped when the session stoped, but he wasobserving the movement of teaser while it moving."
+2026-10-18T11:35:03,slow_crawl_02.json,slow_crawl,1.5,飛びかかった,3,Vi could catch the teaser but gently
+2026-10-18T11:36:14,air_swoop_03.json,air_swoop,1.5,構えた,2,"while it moving Vino observe, when it stoped Vino jumped"
+2026-10-18T11:37:00,dart_stop_01.json,dart_stop,1.5,飛びかかった,3,Vibo immediatelly jumped to the teaser
+2026-10-18T11:38:08,air_hover_02.json,air_hover,1.5,飛びかかった,3,"Jumped to teaser when it had slower movement in the air,how ever while it was moving fast, Vino observed"
+2026-10-18T11:39:12,air_zigzag_03.json,air_zigzag,1.5,構えた,2,while teaser move quickly Vino keep observing or waiting the moment he would jump.
+2026-10-18T11:40:48,low_dart_03.json,low_dart,1.5,飛びかかった,3,Vino jumped and fetched immediatelly since teaser was low level.
+2026-10-18T11:41:57,flutter_03.json,flutter,1.5,飛びかかった,3,"while teaser move quickly Vino watchs, and jump when it come to lower"
+2026-10-18T11:42:54,air_swoop_02.json,air_swoop,1.5,見た,1,Sisnce the teaserhat too quick movement Vino was just watching. Maybe he is getting tired too
+2026-10-18T11:43:42,air_zigzag_01.json,air_zigzag,1.5,見た,1,apparently Vino is too tired and upset. since he can not get it .
+2026-10-18T11:48:50,air_swoop_01.json,air_swoop,1.5,見た,1,"while the teaser was moving Vino was just watching, however when it was stopedhe start jumping"
+2026-10-18T11:49:57,air_peekaboo_02.json,air_peekaboo,1.5,見た,1,Vino seems tired and just get closer and watching
+2026-10-18T11:50:42,fly_quick_02.json,fly_quick,1.5,飛びかかった,3,Vino jumped to the teaser again
+2026-10-18T11:51:43,air_hover_03.json,air_hover,1.5,構えた,2,"Vino watched the teaser, but no jump."
+2026-10-18T11:52:55,slow_crawl_01.json,slow_crawl,1.5,飛びかかった,3,since the teaser was at lower level.Vino caught it!
+2026-10-18T11:54:03,air_peekaboo_03.json,air_peekaboo,1.5,構えた,2,Vino was watching while teaser moving. and Jumped when the session stoped
+2026-10-18T11:55:19,dart_stop_03.json,dart_stop,1.5,飛びかかった,3,
+2026-10-18T11:57:17,flutter_02.json,flutter,1.5,飛びかかった,3,"He jumped to catche the teaser only first time in the beggining how ever, once he knows he can not fetch. he observe or wait untill it stops"
+2026-10-18T11:59:03,flutter_01.json,flutter,1.5,飛びかかった,3,he jumped in the first time when the session started but when the teaser moves dynamiche just watches
+2026-10-18T12:00:05,slow_crawl_03.json,slow_crawl,1.5,飛びかかった,3,he could fetch it quickly!
+2026-10-18T12:00:49,dart_stop_02.json,dart_stop,1.5,飛びかかった,3,most playfull looking!
+2026-10-18T12:01:45,fly_quick_01.json,fly_quick,1.5,飛びかかった,3,he jumped
+2026-10-18T12:03:05,low_dart_01.json,low_dart,1.5,見た,1,Vino was far way and just watching. crump failed
