@@ -52,6 +52,10 @@ def main() -> None:
         default="MJPG",
         help="MJPG（既定。フレームが2〜7割壊れることがあるが使える）/ YUYV（このカメラでは OpenCV の不具合で映像が壊れる。非推奨）",
     )
+    p.add_argument(
+        "--cam-rotate", choices=["cw", "ccw", "180"], default=None,
+        help="Iriun はスマホの向きに合わせて回転してくれないので、ソフト側で直す。縦持ちの向きで cw/ccw が変わるので試し撮りで確認すること",
+    )
     p.add_argument("--session-dir", default="sessions")
     args = p.parse_args()
 
@@ -76,6 +80,7 @@ def main() -> None:
             args.cam_exposure,
             args.cam_gain,
             args.cam_fourcc,
+            rotate=args.cam_rotate,
         )
 
     robot = connect(args.port, args.id)

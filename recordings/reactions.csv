@@ -27,3 +27,44 @@ datetime,file,pattern,speed,reaction,score,note
 2026-10-18T12:00:49,dart_stop_02.json,dart_stop,1.5,飛びかかった,3,most playfull looking!
 2026-10-18T12:01:45,fly_quick_01.json,fly_quick,1.5,飛びかかった,3,he jumped
 2026-10-18T12:03:05,low_dart_01.json,low_dart,1.5,見た,1,Vino was far way and just watching. crump failed
+2026-10-19T07:16:18,fly_quick_03.json,fly_quick,1.5,飛びかかった,3,声:243.7s
+2026-10-19T09:51:15,air_hover_01.json,air_hover,1.0,構えた,2,声:21.7s
+2026-10-19T09:51:15,air_zigzag_01.json,air_zigzag,1.0,構えた,2,声:30.1s
+2026-10-19T09:54:41,dart_stop_01.json,dart_stop,1.0,構えた,2,声:15.5s
+2026-10-19T09:54:41,fly_quick_01.json,fly_quick,1.0,見た,1,声:35.1s
+2026-10-19T09:59:51,low_dart_01.json,low_dart,1.0,構えた,2,声:16.1s
+2026-10-19T09:59:51,air_zigzag_01.json,air_zigzag,1.0,飛びかかった,3,声:25.1s
+2026-10-19T09:59:51,slow_crawl_01.json,slow_crawl,1.0,飛びかかった,3,声:38.1s
+2026-10-19T09:59:51,air_swoop_01.json,air_swoop,1.0,構えた,2,声:50.1s
+2026-10-19T09:59:51,dart_stop_01.json,dart_stop,1.0,見た,1,声:70.8s
+2026-10-19T09:59:51,dart_stop_01.json,dart_stop,1.0,見た,1,声:76.0s
+2026-10-19T09:59:51,flutter_01.json,flutter,1.0,見た,1,声:91.9s
+2026-10-19T10:08:00,flutter_01.json,flutter,1.0,構えた,2,声:52.8s
+2026-10-19T10:08:00,slow_crawl_01.json,slow_crawl,1.0,飛びかかった,3,声:65.5s
+2026-10-19T10:08:00,air_swoop_01.json,air_swoop,1.0,構えた,2,声:82.5s
+2026-10-19T10:08:00,air_peekaboo_01.json,air_peekaboo,1.0,構えた,2,声:96.7s
+2026-10-19T10:08:00,low_dart_01.json,low_dart,1.0,飛びかかった,3,声:102.3s
+2026-10-19T10:08:00,air_hover_01.json,air_hover,1.0,構えた,2,声:118.0s
+2026-10-19T10:42:58,slow_crawl_01.json,slow_crawl,1.0,飛びかかった,3,"Then apply it with tether, brightly."
+2026-10-19T10:42:58,air_hover_01.json,air_hover,1.0,見た,1,Then it's just watching.
+2026-10-19T10:42:58,low_dart_01.json,low_dart,1.0,飛びかかった,3,then finally could fetch the feather.
+2026-10-19T10:42:58,flutter_01.json,flutter,1.0,構えた,2,Pinot is watching.
+2026-10-19T10:42:58,fly_quick_01.json,fly_quick,1.0,飛びかかった,3,Pinot jumped to the...
+2026-10-19T10:45:46,air_swoop_02.json,air_swoop,1.0,構えた,2,Because the movement is too dynamic.
+2026-10-19T10:45:46,fly_quick_02.json,fly_quick,1.0,構えた,2,The movement is too dynamic.
+2026-10-19T10:45:46,slow_crawl_02.json,slow_crawl,1.0,飛びかかった,3,"We are not trying to create a bigger, bigger, like lower level."
+2026-10-19T10:45:46,dart_stop_02.json,dart_stop,1.0,構えた,2,It is just watching.
+2026-10-19T10:45:46,air_hover_02.json,air_hover,1.0,見た,1,He is just watching. It's too high.
+2026-10-19T10:45:46,low_dart_02.json,low_dart,1.0,飛びかかった,3,"He has been prepared with Dealer, with his hand touching the tree."
+2026-10-19T10:45:46,air_peekaboo_02.json,air_peekaboo,1.0,構えた,2,He is just watching the Dealer.
+2026-10-19T10:45:46,flutter_02.json,flutter,1.0,飛びかかった,3,He loves this movement because he still comes a little bit lower and then he thinks he can jump and he does.
+2026-10-19T10:45:46,air_zigzag_02.json,air_zigzag,1.0,飛びかかった,3,He also likes this movement since the teases are much lower than other high ones.
+2026-10-19T10:48:18,air_zigzag_03.json,air_zigzag,1.0,見た,1,"I think that it is not like it, because the movement is too dynamic."
+2026-10-19T10:48:18,air_swoop_03.json,air_swoop,1.0,構えた,2,I think it is not as fascinating that the movement and the quarter crosser.
+2026-10-19T10:48:18,flutter_03.json,flutter,1.0,飛びかかった,3,It is not as much as the movement.
+2026-10-19T10:48:18,dart_stop_03.json,dart_stop,1.0,飛びかかった,3,It is quite fun for him.
+2026-10-19T10:48:18,slow_crawl_03.json,slow_crawl,1.0,飛びかかった,3,He was even crawling and still flying.
+2026-10-19T10:48:18,air_peekaboo_03.json,air_peekaboo,1.0,無視,0,"He was watching, but from distance he got tired of the entry."
+2026-10-19T10:48:18,fly_quick_03.json,fly_quick,1.0,見た,1,He recovered and then he was positioning and waiting for the opportunity.
+2026-10-19T10:48:18,air_hover_03.json,air_hover,1.0,飛びかかった,3,He loved that movement.
+2026-10-19T10:48:18,low_dart_03.json,low_dart,1.0,飛びかかった,3,He comes down towards him.

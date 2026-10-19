@@ -40,6 +40,16 @@ def parse_source(s: str):
     return int(s) if s.isdigit() else s
 
 
+ROTATE_CODES = {"cw": cv2.ROTATE_90_CLOCKWISE, "ccw": cv2.ROTATE_90_COUNTERCLOCKWISE, "180": cv2.ROTATE_180}
+
+
+def apply_rotation(frame, rotate: str | None):
+    """Iriun はスマホの向きに合わせて映像を回転してくれないので、ソフト側で直す。
+    縦持ちには向かい合う2通りがあり、どちらにスマホを置いたかで cw/ccw が変わるので、
+    本番前に毎回 --preview か短い試し撮りで確認すること"""
+    return frame if rotate is None else cv2.rotate(frame, ROTATE_CODES[rotate])
+
+
 def set_manual_exposure(camera_index: int, exposure: int | None, gain: int | None) -> None:
     """auto_exposure を手動に固定して露光とゲインを設定する（v4l2-ctl が要る）"""
     device = f"/dev/video{camera_index}"
@@ -90,6 +100,7 @@ def preview(
     gain: int | None = None,
     fourcc: str = "MJPG",
     out: Path = Path("/tmp/nekoasi_preview.jpg"),
+    rotate: str | None = None,
 ) -> None:
     """録画せず、1枚の JPEG を更新し続ける（cv2.imshow は使わない。opencv-python-headless だと GUI が無いため）
 
@@ -104,7 +115,7 @@ def preview(
             ok, frame = cap.read()
             if not ok:
                 break
-            cv2.imwrite(str(out), frame)
+            cv2.imwrite(str(out), apply_rotation(frame, rotate))
             time.sleep(0.1)
     except KeyboardInterrupt:
         pass
@@ -123,10 +134,12 @@ class CameraRecorder:
         exposure: int | None = None,
         gain: int | None = None,
         fourcc: str = "MJPG",
+        rotate: str | None = None,
     ):
         self.out_path = Path(out_path)
         self.frames_path = self.out_path.with_name(self.out_path.stem + "_frames.csv")
         self.n_frames = 0
+        self.rotate = rotate
         self._stop = threading.Event()
         self._thread = None
 
@@ -134,10 +147,12 @@ class CameraRecorder:
         ok, frame = self.cap.read()
         if not ok:
             raise SystemExit(f"カメラ {source} から映像を読めませんでした")
+        frame = apply_rotation(frame, rotate)
         self.height, self.width = frame.shape[:2]
         self.fps = self.cap.get(cv2.CAP_PROP_FPS) or fps
-        if (self.width, self.height) != (width, height):
-            print(f"  ⚠️ カメラの解像度は {self.width}x{self.height} です（{width}x{height} を指定）")
+        expected = (height, width) if rotate in ("cw", "ccw") else (width, height)
+        if (self.width, self.height) != expected:
+            print(f"  ⚠️ カメラの解像度は（回転後）{self.width}x{self.height} です（{width}x{height} を指定）")
 
         self.out_path.parent.mkdir(parents=True, exist_ok=True)
         codec = "MJPG" if self.out_path.suffix == ".avi" else "mp4v"
@@ -163,7 +178,7 @@ class CameraRecorder:
                 if not ok:
                     break
                 t = time.time()
-                self.writer.write(frame)
+                self.writer.write(apply_rotation(frame, self.rotate))
                 w.writerow([self.n_frames, f"{t:.4f}"])
                 self._t_first = self._t_first or t
                 self._t_last = t
@@ -200,10 +215,17 @@ def main() -> None:
     p.add_argument(
         "--preview", action="store_true", help="録画せず、/tmp/nekoasi_preview.jpg を更新し続ける（位置・角度合わせ用）"
     )
+    p.add_argument(
+        "--rotate", choices=["cw", "ccw", "180"], default=None,
+        help="Iriun はスマホの向きに合わせて回転してくれないので、ソフト側で直す。縦持ちの向きで cw/ccw が変わるので試し撮りで確認すること",
+    )
     args = p.parse_args()
 
     if args.preview:
-        preview(parse_source(args.camera), args.width, args.height, args.fps, args.exposure, args.gain, args.fourcc)
+        preview(
+            parse_source(args.camera), args.width, args.height, args.fps,
+            args.exposure, args.gain, args.fourcc, rotate=args.rotate,
+        )
         return
 
     rec = CameraRecorder(
@@ -215,6 +237,7 @@ def main() -> None:
         args.exposure,
         args.gain,
         args.fourcc,
+        rotate=args.rotate,
     )
     rec.start()
     time.sleep(args.seconds)

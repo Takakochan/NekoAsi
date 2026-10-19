@@ -8,3 +8,6 @@ __pycache__/
 *.avi
 # フレームごとの時刻は動画と一緒に Hugging Face へ
 sessions/*_frames.csv
+
+# YOLO の学習済み重み（コードから自動ダウンロードされる。git には入れない）
+*.pt
