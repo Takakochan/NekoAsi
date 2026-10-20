@@ -3,11 +3,13 @@ __pycache__/
 .venv/
 .ipynb_checkpoints/
 
-# カメラを追加したら：家の中が映るので映像はリポジトリに入れない（データは Hugging Face へ）
-*.mp4
-*.avi
-# フレームごとの時刻は動画と一緒に Hugging Face へ
-sessions/*_frames.csv
+# 家の中が映る録画・ログは一切リポジトリに入れない（データは Hugging Face へ）
+sessions/
 
 # YOLO の学習済み重み（コードから自動ダウンロードされる。git には入れない）
 *.pt
+
+# 個人的な作業ログ・下書き（README.md だけは公開する）
+*.md
+!README.md
+blog_gen/
