@@ -1,3 +1,5 @@
+<p align="center"><img src="images/logo.jpeg" alt="NekoAsi logo" width="200"></p>
+
 # NekoAsi
 
 NekoAsi is a personal robotics project: an [SO-101](https://github.com/TheRobotStudio/SO-ARM100) robot arm plays with a cat teaser (猫じゃらし) to interact with Vino, a cat I'm looking after. The long-term goal is to have the arm react to the cat's behavior instead of just replaying fixed motions.
